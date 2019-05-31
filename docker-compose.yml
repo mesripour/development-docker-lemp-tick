@@ -99,5 +99,3 @@ volumes:
     influxdata:
     chronografdata:
     kapacitordata:
-    elasticdata:
-    rabbitmq:
