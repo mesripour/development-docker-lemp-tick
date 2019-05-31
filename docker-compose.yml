@@ -1,0 +1,103 @@
+version: '2.3'
+services:
+    nginx:
+        image: nginx:1.14.2
+        container_name: nginx
+        volumes:
+            - ./src:/src
+            - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf
+            - ./docker/nginx/vhosts:/etc/nginx/vhosts.d
+        ports:
+            - 80:80
+            - 443:443
+        depends_on:
+            - php
+    php:
+        build:
+            context: ./
+            dockerfile: ./docker/php/Dockerfile
+        image: php-sample:latest
+        container_name: php
+        volumes:
+            - ./src:/src
+            - ./docker/php/php.ini:/usr/local/etc/php/php.ini
+    supervisor:
+        build:
+            context: ./
+            dockerfile: ./docker/supervisor/Dockerfile
+        image: supervisor-sample:latest
+        container_name: supervisor
+        tty: true
+        stdin_open: true
+        volumes:
+            - ./src:/src
+            - ./docker/supervisor/php.ini:/usr/local/etc/php/php.ini
+            - ./docker/supervisor/log:/etc/supervisor/log
+            - ./docker/supervisor/conf.d:/etc/supervisor/conf.d
+            - ./docker/supervisor/supervisord.conf:/etc/supervisor/supervisord.conf
+    mongodb:
+        image: mongo:4.0.4
+        container_name: mongodb
+        volumes:
+            - mongodata:/data/db
+        ports:
+            - 27017:27017
+    redis:
+        image: redis:5.0.2
+        container_name: redis
+        volumes:
+            - redisdata:/data
+        ports:
+            - 6379:6379
+    mariadb:
+        image: mariadb:10.3.11
+        container_name: mariadb
+        ports:
+            - 3306:3306
+        volumes:
+            - mariadata:/var/lib/mysql
+            - ./docker/mariadb/my.cnf:/etc/mysql/conf.d/my.cnf
+        environment:
+            - MYSQL_ROOT_PASSWORD=123456
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin:4.8.3
+        container_name: phpmyadmin
+        environment:
+            - PMA_HOST=mariadb
+        ports:
+            - 8080:80
+    influxdb:
+        image: influxdb:1.7.2
+        container_name: influxdb
+        volumes:
+            - influxdata:/var/lib/influxdb
+            - ./docker/influxdb/influxdb.conf:/etc/influxdb/influxdb.conf
+        ports:
+            - 8086:8086
+    chronograf:
+        image: chronograf:1.7.5
+        container_name: chronograf
+        volumes:
+            - chronografdata:/var/lib/chronograf
+        ports:
+            - 8888:8888
+    telegraf:
+        image: telegraf:1.9.1
+        container_name: telegraf
+        volumes:
+            - ./docker/telegraf/telegraf.conf:/etc/telegraf/telegraf.conf
+    kapacitor:
+        image: kapacitor:1.5.2
+        container_name: kapacitor
+        volumes:
+            - kapacitordata:/var/lib/kapacitor
+            - ./docker/kapacitor/kapacitor.conf:/etc/kapacitor/kapacitor.conf
+volumes:
+    mongodata:
+    redisdata:
+    mariadata:
+    influxdata:
+    chronografdata:
+    kapacitordata:
+    elasticdata:
+    rabbitmq:
