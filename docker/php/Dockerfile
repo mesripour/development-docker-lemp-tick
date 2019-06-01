@@ -19,4 +19,14 @@ RUN pecl install mongodb
 
 RUN pecl install xdebug && docker-php-ext-enable xdebug
 
+# add user mockuser
+USER root
+RUN useradd -m mockuser && echo mockuser:mockuser | chpasswd
+RUN usermod -aG sudo mockuser
+USER mockuser
+RUN wget https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh -O - | zsh || true
+RUN echo "alias llq=\"ls -lah\"" >> ~/.zshrc
+USER root
+RUN chsh -s /bin/zsh mockuser
+
 WORKDIR /src
